@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class LoserController {
 
   private LolService serviceUtil;
-@Operation
+
+  @Operation
   @GetMapping("/lose/all")
   public String getLoser(Model model, HttpServletRequest request, HttpServletResponse response) {
     model.addAttribute("serviceUtil", getServiceUtil().doIt());

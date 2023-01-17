@@ -1,7 +1,9 @@
 package org.fuckingtest.lol.colntrollers;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import org.fuckingtest.lol.domain.Accounts;
+import org.fuckingtest.lol.kafkaservice.KafkaProducerService;
 import org.fuckingtest.lol.service.AccountsService;
 import org.fuckingtest.lol.util.LolService;
 import org.slf4j.Logger;
@@ -17,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
   private final static Logger LOG = LoggerFactory.getLogger(UserController.class);
-  private LolService serviceUtil;
-  private LolService serviceUtil2;
   private AccountsService accountsServiceImpl;
 
+  private KafkaProducerService kafkaProducerServiceImpl;
+
   @GetMapping("/all")
-  public ResponseEntity getAllUsers() {
+  public ResponseEntity<List<Accounts>> getAllUsers() {
     try {
       Accounts a = new Accounts("as","as", LocalDateTime.now(),"as");
       Thread.sleep(2000);
@@ -37,24 +39,23 @@ public class UserController {
       Thread.sleep(2000);
       accountsServiceImpl.save(f);
 
+      kafkaProducerServiceImpl.sendMessage("тестовое сообщение в кафку");
+
       return ResponseEntity.ok(accountsServiceImpl.findAll());
     } catch (Exception ex) {
-      return ResponseEntity.badRequest().body(String.format("Exception %s", ex.toString()));
+      LOG.error(ex.getMessage());
+      return ResponseEntity.badRequest().build();
+      //return ResponseEntity.badRequest().body(String.format("Exception %s", ex));
     }
-  }
-
-  @Autowired
-  public void setServiceUtil(LolService serviceUtil) {
-    this.serviceUtil = serviceUtil;
-  }
-
-  @Autowired
-  public void setServiceUtil2(LolService serviceUtil2) {
-    this.serviceUtil2 = serviceUtil2;
   }
 
   @Autowired
   public void setAccountsServiceImpl(AccountsService accountsServiceImpl) {
     this.accountsServiceImpl = accountsServiceImpl;
+  }
+  @Autowired
+
+  public void setKafkaProducerServiceImpl(KafkaProducerService kafkaProducerServiceImpl) {
+    this.kafkaProducerServiceImpl = kafkaProducerServiceImpl;
   }
 }
