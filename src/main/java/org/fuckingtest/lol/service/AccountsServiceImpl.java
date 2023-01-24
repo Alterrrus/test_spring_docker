@@ -1,18 +1,14 @@
 package org.fuckingtest.lol.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import javax.persistence.LockModeType;
-import org.fuckingtest.lol.colntrollers.UserController;
+import java.util.stream.Collectors;
 import org.fuckingtest.lol.domain.Accounts;
+import org.fuckingtest.lol.dto.AccountsRequest;
+import org.fuckingtest.lol.dto.AccountsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccountsServiceImpl implements AccountsService {
@@ -23,16 +19,29 @@ public class AccountsServiceImpl implements AccountsService {
 
   @Override
   //@Lock(value = LockModeType.OPTIMISTIC_FORCE_INCREMENT)
-  public List<Accounts> findAll() {
+  public List<AccountsResponse> findAll() {
     LOG.info("start find all");
-    return daoAccountRepo.findAll();
+    return daoAccountRepo.findAll().stream().map(this::getAccountsResponse).collect(Collectors.toList());
   }
-
+private AccountsResponse getAccountsResponse(Accounts account){
+    return AccountsResponse.builder()
+        .lastLogin(account.getLastLogin())
+        .user_id(account.getUser_id())
+        .createdOn(account.getCreatedOn())
+        .userName(account.getUserName())
+        .password(account.getPassword())
+        .email(account.getEmail())
+        .build();
+}
   @Override
   //@Lock(LockModeType.OPTIMISTIC)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public Accounts save(Accounts accounts) {
-
+ // @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  public Accounts save(AccountsRequest accountsRequest) {
+    Accounts accounts = Accounts.builder()
+        .userName(accountsRequest.getUserName())
+        .password(accountsRequest.getPassword())
+        .email(accountsRequest.getEmail())
+        .build();
     return daoAccountRepo.save(accounts);
   }
 
